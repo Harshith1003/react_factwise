@@ -3,6 +3,7 @@ import celebrities from './celebrities.json';
 import UserListItem from './UserListItem';
 import {BsSearch} from 'react-icons/bs';
 
+
 interface User {
   id: number;
   first: string;
@@ -20,15 +21,19 @@ const UserList: React.FC = () => {
   const [activeAccordion, setActiveAccordion] = useState<number | null>(null);
   const [editMode, setEditMode] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [editedUser, setEditedUser] = useState<User | null>(null); // New state to store edited user data
 
   const handleAccordionClick = (userId: number) => {
     setActiveAccordion((prevActive) => (prevActive === userId ? null : userId));
     setEditMode(null);
+    setEditedUser(null); 
   };
 
   const handleEditClick = (userId: number) => {
     setActiveAccordion(userId);
     setEditMode(userId);
+    const userToEdit = users.find((user) => user.id === userId);
+    setEditedUser(userToEdit || null);
   };
 
   const handleInputChange = (userId: number, field: string, value: string) => {
@@ -39,23 +44,28 @@ const UserList: React.FC = () => {
     );
   };
 
-
+  const handleCancelClick = (userId: number) => {
+    setEditMode(null);
+    if (editedUser) {
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === userId ? { ...editedUser } : user
+        )
+      );
+    }
+  };
 
   const handleSaveClick = (userId: number) => {
     setEditMode(null);
-  };
-
-  const handleCancelClick = (userId: number) => {
-    setEditMode(null);
+    setEditedUser(null); 
   };
 
   const handleDeleteClick = (userId: number) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-        setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
-        setEditMode(null);
-        setActiveAccordion(null);
-      }
+    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
+    setEditMode(null);
+    setActiveAccordion(null);
   };
+
   const handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
   };
@@ -65,7 +75,7 @@ const UserList: React.FC = () => {
       user.first.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.last.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
+  
   return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",paddingTop:10}}>
       <div className='box'>
